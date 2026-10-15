@@ -1,9 +1,11 @@
+mod access_log;
 mod auth;
 mod config;
 mod limiter;
 mod mcp;
 mod sandbox;
 
+use access_log::access_log_middleware;
 use anyhow::Result;
 use auth::auth_middleware;
 use config::Config;
@@ -13,9 +15,8 @@ use rmcp::transport::streamable_http_server::{
     StreamableHttpServerConfig, StreamableHttpService, session::local::LocalSessionManager,
 };
 use sandbox::WasmSandbox;
+use std::net::SocketAddr;
 use std::sync::Arc;
-use tower_http::cors::CorsLayer;
-use tower_http::trace::TraceLayer;
 use tracing::info;
 
 #[tokio::main]
@@ -23,7 +24,7 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "gcsim_mcp_server=info,tower_http=info".into()),
+                .unwrap_or_else(|_| "gcsim_mcp_server=info".into()),
         )
         .init();
 
@@ -66,8 +67,7 @@ async fn main() -> Result<()> {
             .layer(axum::middleware::from_fn(move |req, next| {
                 auth_middleware(auth_token.clone(), req, next)
             }))
-            .layer(CorsLayer::permissive())
-            .layer(TraceLayer::new_for_http());
+            .layer(axum::middleware::from_fn(access_log_middleware));
 
         let addr = format!("{}:{}", host, port);
         info!(
@@ -76,7 +76,11 @@ async fn main() -> Result<()> {
         );
 
         let listener = tokio::net::TcpListener::bind(&addr).await?;
-        axum::serve(listener, app).await?;
+        axum::serve(
+            listener,
+            app.into_make_service_with_connect_info::<SocketAddr>(),
+        )
+        .await?;
     }
 
     Ok(())
