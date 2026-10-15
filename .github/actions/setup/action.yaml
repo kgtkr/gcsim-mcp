@@ -25,3 +25,17 @@ runs:
         key: cargo-home-20261015-1-${{ github.sha }}
         restore-keys: |
           cargo-home-20261015-1-
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: ~/go/pkg/mod
+        key: go-mod-20261015-1-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          go-mod-20261015-1-
+    - name: Cache Go build
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/go-build
+        key: go-build-20261015-1-${{ github.sha }}
+        restore-keys: |
+          go-build-20261015-1-

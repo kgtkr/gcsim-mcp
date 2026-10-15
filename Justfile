@@ -7,9 +7,12 @@ dev *args: wasm
     cd server && cargo run -- {{args}}
 
 lint:
+    cd wasm-engine && GOOS=wasip1 GOARCH=wasm go vet ./...
+    cd wasm-engine && go mod verify
     cd server && cargo clippy --all --lib --tests -- -D warnings
 
 test: wasm
+    cd wasm-engine && GOOS=wasip1 GOARCH=wasm go test ./...
     cd server && cargo test
 
 update-gcsim:
