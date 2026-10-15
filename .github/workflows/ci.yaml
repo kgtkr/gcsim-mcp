@@ -54,7 +54,7 @@ jobs:
       - uses: ./.github/actions/setup
       - name: Build
         run: |
-          nix run .#streamImage > result.tgz
+          nix run .#streamImage > result.tar
       - name: Push
         run: |
           skopeo login ghcr.io -u "$DOCKER_USER" -p "$DOCKER_PASS"
