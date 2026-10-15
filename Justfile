@@ -15,7 +15,7 @@ test: wasm
 update-gcsim:
     cd wasm-engine && go get -u github.com/genshinsim/gcsim@main && go mod tidy
     sed -i 's|vendorHash = ".*";|vendorHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";|' wasm-engine/default.nix
-    NEW_HASH=$$(nix build .#wasm-engine 2>&1 | grep -o 'got: *sha256-[^ ]*' | awk '{print $$2}' || true); \
-    if [ -n "$$NEW_HASH" ]; then \
-        sed -i "s|vendorHash = \".*\";|vendorHash = \"$$NEW_HASH\";|" wasm-engine/default.nix; \
+    NEW_HASH=$(nix build .#wasm-engine 2>&1 | grep -o 'got: *sha256-[^ ]*' | awk '{print $2}' || true); \
+    if [ -n "$NEW_HASH" ]; then \
+        sed -i "s|vendorHash = \".*\";|vendorHash = \"$NEW_HASH\";|" wasm-engine/default.nix; \
     fi
