@@ -36,6 +36,7 @@
             gcsim-mcp = pkgs.runCommand "gcsim-mcp"
               {
                 nativeBuildInputs = [ pkgs.makeWrapper ];
+                meta.mainProgram = "gcsim-mcp";
               } ''
               mkdir -p $out/bin
               makeWrapper ${self'.packages.server}/bin/gcsim-mcp-server $out/bin/gcsim-mcp \

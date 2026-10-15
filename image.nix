@@ -28,7 +28,12 @@
     {
       packages = {
         image = pkgs.dockerTools.buildLayeredImage args;
-        streamImage = pkgs.dockerTools.streamLayeredImage args;
+      };
+      apps = {
+        streamImage = {
+          type = "app";
+          program = "${pkgs.dockerTools.streamLayeredImage args}";
+        };
       };
     };
 }
