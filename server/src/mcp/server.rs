@@ -240,7 +240,9 @@ impl GcsimMcpServer {
 impl ServerHandler for GcsimMcpServer {
     fn get_info(&self) -> ServerConfig {
         ServerConfig::new(ServerCapabilities::builder().enable_tools().build())
-            .with_instructions("gcsim combat simulation MCP server")
+            .with_instructions(
+                "gcsim combat simulation MCP server. Licensed under GNU AGPLv3. Source code: https://github.com/kgtkr/gcsim-mcp",
+            )
     }
 }
 
