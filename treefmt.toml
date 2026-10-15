@@ -1,0 +1,22 @@
+[formatter.nix]
+command = "nixpkgs-fmt"
+includes = ["*.nix"]
+
+[formatter.rust]
+command = "rustfmt"
+includes = ["*.rs"]
+options = ["--edition", "2024"]
+
+[formatter.dprint]
+command = "dprint"
+includes = ["*.json", "*.toml", "*.md", "*.yaml", "*.yml"]
+options = ["fmt"]
+
+[formatter.go]
+command = "gofmt"
+options = ["-w"]
+includes = ["*.go"]
+
+excludes = [
+  "*-lock.json",
+]

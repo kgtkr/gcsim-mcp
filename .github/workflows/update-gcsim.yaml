@@ -1,0 +1,72 @@
+name: update-gcsim
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  check-and-create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PAT }}
+
+      - run: |
+          git config --global user.name "kgtkr actions"
+          git config --global user.email "actions@kgtkr.net"
+
+      - uses: ./.github/actions/setup
+
+      - id: update
+        run: |
+          just update-gcsim
+          treefmt
+
+          if git diff --quiet; then
+            echo "No changes detected. Exiting."
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+
+          BRANCH_NAME="update-gcsim-$(date +'%Y%m%d-%H%M%S')"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
+          git checkout -B "$BRANCH_NAME"
+          git commit -am "chore(deps): update gcsim to latest"
+          git push -f origin "$BRANCH_NAME"
+
+      # GITHUB_TOKEN で作成した PR は後続のワークフローをトリガーしないため PAT を使う
+      - id: create-pr
+        if: steps.update.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.PAT }}
+        run: |
+          BRANCH_NAME="${{ steps.update.outputs.branch_name }}"
+
+          PR_URL=$(gh pr create \
+            --repo ${{ github.repository }} \
+            --title "chore(deps): update gcsim to latest" \
+            --body "Automated update of \`github.com/genshinsim/gcsim\` to latest.\n\n- Updated \`wasm-engine/go.mod\` and \`wasm-engine/go.sum\`\n- Recomputed \`vendorHash\` in \`wasm-engine/default.nix\`" \
+            --base master \
+            --head "$BRANCH_NAME")
+
+          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+
+      # PAT で作成した PR は PAT の所有者自身に通知が届かないため、GITHUB_TOKEN を使用してメンションコメントを投稿
+      - id: comment-pr
+        if: steps.update.outputs.has_changes == 'true' && steps.create-pr.outputs.pr_url != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment "${{ steps.create-pr.outputs.pr_url }}" \
+            --body "@${{ github.repository_owner }} Update PR has been created."
