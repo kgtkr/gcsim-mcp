@@ -15,6 +15,8 @@
       rustPkgs = pkgs.rustBuilder.makePackageSet {
         packageFun = import "${generatedSrc}/Cargo.nix";
         inherit rustToolchain;
+        rustcLinkFlags = [ "--remap-path-prefix=${rustToolchain}=/rust" ];
+        rustcBuildFlags = [ "--remap-path-prefix=${rustToolchain}=/rust" ];
       };
     in
     {
