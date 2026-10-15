@@ -1,0 +1,26 @@
+[package]
+name = "gcsim-mcp-server"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0"
+axum = { version = "0.7", features = ["macros", "tokio"] }
+clap = { version = "4.5", features = ["derive", "env"] }
+futures = "0.3"
+rmcp = { version = "3.5", features = ["server", "macros", "transport-streamable-http-server", "transport-io"] }
+schemars = { version = "1.2.3", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["full"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uuid = { version = "1.7", features = ["v4"] }
+wasmtime = { version = "25.0", features = ["async"] }
+wasmtime-wasi = "25.0"
+
+[profile.dev.package."*"]
+opt-level = 3
