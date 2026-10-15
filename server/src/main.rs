@@ -58,7 +58,7 @@ async fn main() -> Result<()> {
             StreamableHttpService::new(
                 move || Ok(server_for_factory.clone()),
                 Default::default(),
-                StreamableHttpServerConfig::default(),
+                StreamableHttpServerConfig::default().disable_allowed_hosts(),
             );
 
         let app = axum::Router::new()
