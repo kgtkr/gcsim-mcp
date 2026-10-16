@@ -227,7 +227,7 @@ impl GcsimMcpServer {
     }
 
     #[tool(
-        description = "Get general syntax help, template examples, and rules for writing gcsim configuration scripts (GCSL)."
+        description = "Get GCSL syntax help, stat key names, artifact main/substat rules and roll values, KQM Standard (KQMS) default substat allocation rules, and template examples. Call this before writing GCSL configs."
     )]
     async fn get_gcsim_help(&self) -> Result<CallToolResult, McpError> {
         Ok(CallToolResult::success(vec![ContentBlock::text(
@@ -241,7 +241,7 @@ impl ServerHandler for GcsimMcpServer {
     fn get_info(&self) -> ServerConfig {
         ServerConfig::new(ServerCapabilities::builder().enable_tools().build())
             .with_instructions(
-                "gcsim combat simulation MCP server. Licensed under GNU AGPLv3. Source code: https://github.com/kgtkr/gcsim-mcp",
+                "gcsim combat simulation MCP server. Always call `get_gcsim_help` before generating GCSL scripts to check syntax, stat keys, artifact main/substat rules, and KQM Standard (KQMS) substat allocation rules (which should be used and presented to the user whenever artifact stats are not explicitly specified). Licensed under GNU AGPLv3. Source code: https://github.com/kgtkr/gcsim-mcp",
             )
     }
 }
