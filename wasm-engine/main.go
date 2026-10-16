@@ -160,6 +160,14 @@ func main() {
 			resp = Response{Success: false, Error: "parse error: " + err.Error()}
 			return
 		}
+		if len(simcfg.Errors) > 0 {
+			errMsgs := ""
+			for _, v := range simcfg.Errors {
+				errMsgs += fmt.Sprintf("%v\n", v)
+			}
+			resp = Response{Success: false, Error: errMsgs}
+			return
+		}
 
 		cpycfg := simcfg.Copy()
 		program := gcsl.Copy()

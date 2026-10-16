@@ -21,6 +21,7 @@
           ExposedPorts = {
             "3485/tcp" = { };
           };
+          User = "65534:65534";
           WorkingDir = "/";
         };
       };

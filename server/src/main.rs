@@ -12,7 +12,7 @@ use config::Config;
 use limiter::SimLimiter;
 use mcp::server::{GcsimMcpServer, ReferenceCache, run_stdio};
 use rmcp::transport::streamable_http_server::{
-    StreamableHttpServerConfig, StreamableHttpService, session::local::LocalSessionManager,
+    StreamableHttpServerConfig, StreamableHttpService, session::never::NeverSessionManager,
 };
 use sandbox::WasmSandbox;
 use std::net::SocketAddr;
@@ -54,16 +54,17 @@ async fn main() -> Result<()> {
         let port = config.port;
 
         let server_for_factory = server.clone();
-        let service: StreamableHttpService<GcsimMcpServer, LocalSessionManager> =
+        let service: StreamableHttpService<GcsimMcpServer, NeverSessionManager> =
             StreamableHttpService::new(
                 move || Ok(server_for_factory.clone()),
                 Default::default(),
-                StreamableHttpServerConfig::default().disable_allowed_hosts(),
+                StreamableHttpServerConfig::default()
+                    .with_legacy_session_mode(false)
+                    .disable_allowed_hosts(),
             );
 
         let app = axum::Router::new()
-            .nest_service("/mcp", service.clone())
-            .fallback_service(service)
+            .nest_service("/mcp", service)
             .layer(axum::middleware::from_fn(move |req, next| {
                 auth_middleware(auth_token.clone(), req, next)
             }))

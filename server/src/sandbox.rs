@@ -46,7 +46,6 @@ impl WasmSandbox {
         let start = std::time::Instant::now();
 
         let mut config = Config::new();
-        config.async_support(true);
         config.consume_fuel(true);
 
         let engine = Engine::new(&config)?;
@@ -54,7 +53,7 @@ impl WasmSandbox {
         tracing::info!("Wasm module compiled successfully in {:?}", start.elapsed());
 
         let mut linker = Linker::new(&engine);
-        preview1::add_to_linker_async(&mut linker, |state: &mut HostState| &mut state.wasi)?;
+        preview1::add_to_linker_sync(&mut linker, |state: &mut HostState| &mut state.wasi)?;
 
         Ok(Self {
             engine,
@@ -65,7 +64,16 @@ impl WasmSandbox {
     }
 
     pub async fn execute(&self, input_json: &str, max_fuel: u64) -> Result<String> {
-        let stdin = MemoryInputPipe::new(input_json.as_bytes().to_vec());
+        let sandbox = self.clone();
+        let input_bytes = input_json.as_bytes().to_vec();
+
+        tokio::task::spawn_blocking(move || sandbox.execute_sync(input_bytes, max_fuel))
+            .await
+            .map_err(|e| anyhow!("Wasm execution task failed: {}", e))?
+    }
+
+    fn execute_sync(&self, input_bytes: Vec<u8>, max_fuel: u64) -> Result<String> {
+        let stdin = MemoryInputPipe::new(input_bytes);
         let stdout = MemoryOutputPipe::new(10 * 1024 * 1024); // 最大10MB出力バッファ
         let stderr = MemoryOutputPipe::new(10 * 1024 * 1024); // 最大10MBエラーバッファ
 
@@ -91,12 +99,9 @@ impl WasmSandbox {
         store.limiter(|state| state);
         store.set_fuel(max_fuel)?;
 
-        let instance = self
-            .linker
-            .instantiate_async(&mut store, &self.module)
-            .await?;
+        let instance = self.linker.instantiate(&mut store, &self.module)?;
         let start_fn = instance.get_typed_func::<(), ()>(&mut store, "_start")?;
-        let res = start_fn.call_async(&mut store, ()).await;
+        let res = start_fn.call(&mut store, ());
 
         if let Err(e) = res {
             if let Some(exit) = e.downcast_ref::<wasmtime_wasi::I32Exit>() {
