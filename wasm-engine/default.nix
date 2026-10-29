@@ -6,7 +6,7 @@
         version = "0.1.0";
         src = ./.;
 
-        vendorHash = "sha256-cHX5lTOusCOdc+DNNL2P1G/XMVLPc+SVtlsbz+y3BbQ=";
+        vendorHash = "sha256-4izwgH1JQvOdLx0pEeRs5n28QVGYtBobjniE7r6A3YI=";
 
         buildPhase = ''
           runHook preBuild
