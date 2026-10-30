@@ -2,8 +2,8 @@ github.com/aclements/go-moremath v0.0.0-20210112150236-f10218a38794 h1:xlwdaKcTN
 github.com/aclements/go-moremath v0.0.0-20210112150236-f10218a38794/go.mod h1:7e+I0LQFUI9AXWxOfsQROs9xPhoJtbsyWcjJqDd4KPY=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/genshinsim/gcsim v1.15.2-0.20261023165544-2350be9e835a h1:7ZUSzmmsrYrE3o5EFGL1m4OnWI886K7W/98JoC/qiuE=
-github.com/genshinsim/gcsim v1.15.2-0.20261023165544-2350be9e835a/go.mod h1:CoXrOXi4mQBbn/AuO+GflQvwGmTBd1IO09FZD8Vf/7A=
+github.com/genshinsim/gcsim v1.15.2-0.20261029034425-fcc117b31ce4 h1:b3bOFqP/iL4BoLIKne0408ZHw74CAJlhJDOUqNG9eNI=
+github.com/genshinsim/gcsim v1.15.2-0.20261029034425-fcc117b31ce4/go.mod h1:CoXrOXi4mQBbn/AuO+GflQvwGmTBd1IO09FZD8Vf/7A=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
 github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=
