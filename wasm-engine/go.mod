@@ -2,7 +2,7 @@ module gcsim-mcp/wasm-engine
 
 go 1.27.0
 
-require github.com/genshinsim/gcsim v1.15.2-0.20261023165544-2350be9e835a
+require github.com/genshinsim/gcsim v1.15.2-0.20261029034425-fcc117b31ce4
 
 require (
 	github.com/aclements/go-moremath v0.0.0-20210112150236-f10218a38794 // indirect
