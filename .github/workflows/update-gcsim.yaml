@@ -38,12 +38,26 @@ jobs:
 
           echo "has_changes=true" >> $GITHUB_OUTPUT
 
-          BRANCH_NAME="update-gcsim-$(date +'%Y%m%d-%H%M%S')"
+          BRANCH_NAME="update-gcsim"
           echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
 
           git checkout -B "$BRANCH_NAME"
           git commit -am "chore(deps): update gcsim to latest"
-          git push -f origin "$BRANCH_NAME"
+
+          # リモートに同名ブランチがあり差分がない場合は無駄な force push をスキップ
+          if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null 2>&1; then
+            git fetch origin "$BRANCH_NAME"
+            if git diff --quiet HEAD "origin/$BRANCH_NAME"; then
+              echo "Remote branch $BRANCH_NAME is already up to date."
+              echo "branch_updated=false" >> $GITHUB_OUTPUT
+            else
+              git push -f origin "$BRANCH_NAME"
+              echo "branch_updated=true" >> $GITHUB_OUTPUT
+            fi
+          else
+            git push -f origin "$BRANCH_NAME"
+            echo "branch_updated=true" >> $GITHUB_OUTPUT
+          fi
 
       # GITHUB_TOKEN で作成した PR は後続のワークフローをトリガーしないため PAT を使う
       - id: create-pr
@@ -53,20 +67,39 @@ jobs:
         run: |
           BRANCH_NAME="${{ steps.update.outputs.branch_name }}"
 
-          PR_URL=$(gh pr create \
+          EXISTING_PR_URL=$(gh pr list \
             --repo ${{ github.repository }} \
-            --title "chore(deps): update gcsim to latest" \
-            --body "Automated update of \`github.com/genshinsim/gcsim\` to latest.\n\n- Updated \`wasm-engine/go.mod\` and \`wasm-engine/go.sum\`\n- Recomputed \`vendorHash\` in \`wasm-engine/default.nix\`" \
+            --head "$BRANCH_NAME" \
             --base master \
-            --head "$BRANCH_NAME")
+            --state open \
+            --json url \
+            --jq '.[0].url // empty')
 
-          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+          if [ -n "$EXISTING_PR_URL" ]; then
+            echo "Existing PR found: $EXISTING_PR_URL"
+            echo "pr_url=$EXISTING_PR_URL" >> $GITHUB_OUTPUT
+            echo "pr_created=false" >> $GITHUB_OUTPUT
+          else
+            PR_URL=$(gh pr create \
+              --repo ${{ github.repository }} \
+              --title "chore(deps): update gcsim to latest" \
+              --body "Automated update of \`github.com/genshinsim/gcsim\` to latest.\n\n- Updated \`wasm-engine/go.mod\` and \`wasm-engine/go.sum\`\n- Recomputed \`vendorHash\` in \`wasm-engine/default.nix\`" \
+              --base master \
+              --head "$BRANCH_NAME")
+
+            echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+            echo "pr_created=true" >> $GITHUB_OUTPUT
+          fi
 
       # PAT で作成した PR は PAT の所有者自身に通知が届かないため、GITHUB_TOKEN を使用してメンションコメントを投稿
       - id: comment-pr
-        if: steps.update.outputs.has_changes == 'true' && steps.create-pr.outputs.pr_url != ''
+        if: steps.update.outputs.has_changes == 'true' && steps.create-pr.outputs.pr_url != '' && (steps.create-pr.outputs.pr_created == 'true' || steps.update.outputs.branch_updated == 'true')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr comment "${{ steps.create-pr.outputs.pr_url }}" \
-            --body "@${{ github.repository_owner }} Update PR has been created."
+          if [ "${{ steps.create-pr.outputs.pr_created }}" = "true" ]; then
+            MSG="@${{ github.repository_owner }} Update PR has been created."
+          else
+            MSG="@${{ github.repository_owner }} Update PR has been updated with the latest changes."
+          fi
+          gh pr comment "${{ steps.create-pr.outputs.pr_url }}" --body "$MSG"
